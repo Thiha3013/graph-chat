@@ -1,66 +1,53 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+import { useState } from "react";
+import { MessageCell, CellCollection, ChatWindow } from "@/components/types/core";
+
 
 export default function Home() {
+  const [text, setText] = useState("");
+  const [items, setItems] = useState<MessageCell[]>([]);
+
+
+  function handleSubmit() {
+    setItems([...items, { id: crypto.randomUUID(), windowId: "active", role: "user", content: text, createdAt: Date.now() }]);
+    setText("");
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="">
+
+      
+
+      {/* Cell Container */}
+      <div className=" flex flex-col items-center w-full p-0.5 ">
+        {items.map((item, i) => (
+            <div key={i}
+                 className="rounded-lg bg-[var(--border)] w-3/5 p-1 m-0.5 break-words whitespace-pre-wrap ">
+                  {JSON.stringify(item)}
+            </div>
+          ))}
+      </div>
+
+      {/*Text input + Button*/}
+      <div className="absolute bottom-10 left-0 w-full flex justify-center">
+        <div className="bg-[var(--highlight)] flex items-center rounded-4xl p-2 pl-16 gap-0 w-3/5">
+
+          <input
+            className="flex-1 h-10 px-2"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="px-2">
+          <button
+            className="bg-[var(--primary)] text-white w-8 h-8 rounded-full flex items-center justify-center "
+            onClick={handleSubmit}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            →
+          </button>
+          </div>
         </div>
-      </main>
+      </div>
+
     </div>
   );
 }
