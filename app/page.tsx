@@ -1,15 +1,27 @@
 "use client";
 import { useState } from "react";
-import { MessageCell, CellCollection, ChatWindow } from "@/components/types/core";
+import { useApp } from "./context";
 
 
 export default function Home() {
   const [text, setText] = useState("");
-  const [items, setItems] = useState<MessageCell[]>([]);
+  const { cells, windows, activeWindowId, addCell } = useApp();
+  const activeWindow = windows.find(w => w.id === activeWindowId);
+
+
 
 
   function handleSubmit() {
-    setItems([...items, { id: crypto.randomUUID(), windowId: "active", role: "user", content: text, createdAt: Date.now() }]);
+    if (!activeWindowId) return;
+
+    addCell({
+      id: crypto.randomUUID(),
+      windowId: activeWindowId,
+      role: "user",
+      content: text,
+      createdAt: Date.now(),
+    });
+    
     setText("");
   }
 
@@ -20,12 +32,11 @@ export default function Home() {
 
       {/* Cell Container */}
       <div className=" flex flex-col items-center w-full p-0.5 ">
-        {items.map((item, i) => (
-            <div key={i}
-                 className="rounded-lg bg-[var(--border)] w-3/5 p-1 m-0.5 break-words whitespace-pre-wrap ">
-                  {JSON.stringify(item)}
-            </div>
-          ))}
+      {activeWindow?.messageCellIds.map(id => {
+          const cell = cells[id];
+          if (!cell) return null;
+          return <div key={id}>{cell.content}</div>;
+        })}
       </div>
 
       {/*Text input + Button*/}
