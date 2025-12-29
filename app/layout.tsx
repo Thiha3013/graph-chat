@@ -1,8 +1,9 @@
 "use client";
+import "./globals.css";
 import { useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { MessageCell, CellCollection, ChatWindow } from "@/components/types/core";
+import { MessageCell, ChatWindow } from "@/components/types/core";
+import { AppContext } from "./context";
 
 
 
@@ -18,7 +19,31 @@ const geistMono = Geist_Mono({
 
 
 export default function RootLayout({children}: {children: React.ReactNode;}){
-  const [items, setItems] = useState<ChatWindow[]>([]);
+  const [windows, setWindows] = useState<ChatWindow[]>([]); // Array of windows
+  const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
+  const [cells, setCells] = useState<Record<string, MessageCell>>({}); // Record or Dictionary of cells
+
+  function addCell(cell: MessageCell) {
+    setCells(prev => ({ ...prev, [cell.id]: cell }));
+    setWindows(prev => prev.map(w => //loop through prev(the array that contains all windows)
+        w.id === activeWindowId ? { ...w, messageCellIds: [...w.messageCellIds, cell.id] } : w 
+      )
+    );
+  }
+  
+
+  function addNewWindow () {
+    const id = crypto.randomUUID();
+    setWindows([...windows, {
+      id: id,
+      title: "New Chat",
+      agentRole: "assistant",
+      model: "default",
+      systemPrompt: "",
+      messageCellIds: []
+    }]);
+    setActiveWindowId(id);
+  }
 
   
 
@@ -34,22 +59,18 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             <div className="w-full flex justify-center ">
-              <button onClick={() => setItems([...items, {
-                id: crypto.randomUUID(),
-                title: "New Chat",
-                agentRole: "assistant",
-                model: "default",
-                systemPrompt: "",
-                messageCellIds: []
-              }])}>
+              <button onClick={() => addNewWindow()
+              }>
                 add new chat
               </button>
             </div>
 
             <div className=" flex flex-col items-center w-full p-0.5 ">
-              {items.map((item, i) => (
+              {windows.map((window, i) => (
                   <div key={i}
-                      className="rounded-lg bg-[var(--border)] w-4/5 p-1 m-0.5 ">new chat id:{item.id}</div>
+                      className="rounded-lg bg-[var(--border)] w-4/5 p-1 m-0.5 break-words whitespace-pre-wrap ">
+                        new chat id:{JSON.stringify(window)}
+                  </div>
                 ))}
             </div>
 
@@ -67,7 +88,9 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             {/* page.js */}
-            {children}
+            <AppContext.Provider value={{cells, windows, activeWindowId, addCell,}}>
+              {children}
+            </AppContext.Provider>
 
           </div>
 
