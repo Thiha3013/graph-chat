@@ -3,6 +3,13 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
+  {
+    // Disable all warnings, only show errors
+    rules: {
+      // Override all rules to error level instead of warn
+      "*": "error"
+    }
+  },
   ...nextVitals,
   ...nextTs,
   // Override default ignores of eslint-config-next.
