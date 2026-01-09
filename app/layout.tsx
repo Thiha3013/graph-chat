@@ -3,7 +3,9 @@ import "./globals.css";
 import { useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { MessageCell, ChatWindow } from "@/components/types/core";
+import { moveId } from "@/lib/reorder"; // pure reorder helper
 import { AppContext } from "./context";
+
 
 
 
@@ -30,7 +32,18 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
       )
     );
   }
+
+  function reorderActiveWindowCells(fromId: string, toId: string) { // reorder ids in active window
+    if (!activeWindowId) return; // no active window
+    if (fromId === toId) return; // no-op
   
+    setWindows(prev => // update windows array
+      prev.map(w => { // scan each window
+        if (w.id !== activeWindowId) return w; // only active window changes
+        return { ...w, messageCellIds: moveId(w.messageCellIds, fromId, toId) }; // reorder ids
+      })
+    );
+  }  
 
   function addNewWindow () {
     const id = crypto.randomUUID();
@@ -74,8 +87,6 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
                 ))}
             </div>
 
-
-            
           </div>
 
           <div className="w-4/5 h-full relative">
@@ -88,7 +99,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             {/* page.js */}
-            <AppContext.Provider value={{cells, windows, activeWindowId, addCell,}}>
+            <AppContext.Provider value={{ cells, windows, activeWindowId, addCell, reorderActiveWindowCells }}>
               {children}
             </AppContext.Provider>
 
