@@ -80,7 +80,7 @@ export default function Home() {
     <div className="">
       {/* Cell Container */}
       <div className="flex flex-col items-center w-full p-0.5" onPointerMove={onMove} onPointerUp={stopDrag}>
-        {activeWindow?.messageCellIds.map(id => {
+        {activeWindow?.messageCellIds?.map(id => {
           const cell = cells[id]; // get cell
           if (!cell) return null; // safety
 
