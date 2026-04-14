@@ -10,7 +10,7 @@ export default function Home() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { cells, windows, activeWindowId, addCell, reorderActiveWindowCells } = useApp();
+  const { cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow } = useApp();
   const activeWindow = windows.find(w => w.id === activeWindowId);
 
   // Refs track drag state without triggering re-renders on every pointer move.
@@ -68,11 +68,16 @@ export default function Home() {
   }
 
   async function handleSubmit() {
-    if (!activeWindowId || !activeWindow || !text.trim() || loading) return;
+    if (!text.trim() || loading) return;
+
+    // If no window exists yet, create one before submitting.
+    // addNewWindow returns the new id immediately since state won't have flushed.
+    const windowId = activeWindowId ?? addNewWindow();
+    const currentWindow = activeWindow ?? { id: windowId, title: "New Chat", agentRole: "assistant", model: "default", systemPrompt: "", messageCellIds: [] };
 
     const userCell: MessageCell = {
       id: crypto.randomUUID(),
-      windowId: activeWindowId,
+      windowId,
       role: "user",
       content: text,
       createdAt: Date.now(),
@@ -85,14 +90,14 @@ export default function Home() {
     // React state hasn't flushed yet, so we build the updated context manually
     // rather than reading from stale state.
     const updatedCells = { ...cells, [userCell.id]: userCell };
-    const updatedWindow = { ...activeWindow, messageCellIds: [...activeWindow.messageCellIds, userCell.id] };
+    const updatedWindow = { ...currentWindow, messageCellIds: [...currentWindow.messageCellIds, userCell.id] };
     const messages = assembleContext(updatedWindow, updatedCells);
 
     const content = await callLLM(messages);
 
     addCell({
       id: crypto.randomUUID(),
-      windowId: activeWindowId,
+      windowId,
       role: "assistant",
       content,
       createdAt: Date.now(),

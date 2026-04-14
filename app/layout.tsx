@@ -45,10 +45,10 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
     );
   }  
 
-  function addNewWindow () {
+  function addNewWindow(): string {
     const id = crypto.randomUUID();
-    setWindows([...windows, {
-      id: id,
+    setWindows(prev => [...prev, {
+      id,
       title: "New Chat",
       agentRole: "assistant",
       model: "default",
@@ -56,6 +56,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
       messageCellIds: []
     }]);
     setActiveWindowId(id);
+    return id; // caller may need the id immediately (before state flushes)
   }
 
   
@@ -99,7 +100,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             {/* page.js */}
-            <AppContext.Provider value={{ cells, windows, activeWindowId, addCell, reorderActiveWindowCells }}>
+            <AppContext.Provider value={{ cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow }}>
               {children}
             </AppContext.Provider>
 
