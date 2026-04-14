@@ -90,10 +90,14 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             <div className=" flex flex-col items-center w-full p-0.5 ">
-              {windows.map((window, i) => (
-                  <div key={i}
-                      className="rounded-lg bg-[var(--border)] w-4/5 p-1 m-0.5 break-words whitespace-pre-wrap ">
-                        new chat id:{JSON.stringify(window)}
+              {windows.map((window) => (
+                  <div key={window.id}
+                      onClick={() => setActiveWindowId(window.id)}
+                      className={[
+                        "rounded-lg w-4/5 p-1 m-0.5 cursor-pointer",
+                        window.id === activeWindowId ? "bg-[var(--primary)] text-white" : "bg-[var(--border)]"
+                      ].join(" ")}>
+                        {window.title}
                   </div>
                 ))}
             </div>
