@@ -10,7 +10,12 @@ export default function Home() {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow } = useApp();
+  // Set of selected cell IDs. Set is like an array but has no duplicates
+  // and checking/adding/removing by value is faster.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [collectionName, setCollectionName] = useState("");
+
+  const { cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow, saveCollection } = useApp();
   const activeWindow = windows.find(w => w.id === activeWindowId);
 
   // Refs track drag state without triggering re-renders on every pointer move.
@@ -20,6 +25,27 @@ export default function Home() {
 
   // Incrementing this forces a re-render to reflect updated ref values in the UI.
   const [, forceRerender] = useState(0);
+
+  function toggleSelect(id: string) {
+    // Sets are mutable but useState needs a new reference to trigger a re-render,
+    // so we copy the Set before modifying it.
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function handleSaveCollection() {
+    if (!collectionName.trim() || selectedIds.size === 0) return;
+
+    // Filter messageCellIds down to only selected ones, preserving window order.
+    const orderedCellIds = (activeWindow?.messageCellIds ?? []).filter(id => selectedIds.has(id));
+
+    saveCollection(collectionName.trim(), orderedCellIds);
+    setSelectedIds(new Set()); // clear selection
+    setCollectionName("");
+  }
 
   function startDrag(id: string, e: React.PointerEvent) {
     dragIdRef.current = id;
@@ -111,6 +137,21 @@ export default function Home() {
 
   return (
     <div className="">
+      {/* Save bar — only visible when at least one cell is selected */}
+      {selectedIds.size > 0 && (
+        <div className="flex justify-center gap-2 p-2">
+          <input
+            className="border px-2 py-1"
+            placeholder="Collection name"
+            value={collectionName}
+            onChange={e => setCollectionName(e.target.value)}
+          />
+          <button className="bg-[var(--primary)] text-white px-3 py-1" onClick={handleSaveCollection}>
+            Save ({selectedIds.size})
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col items-center w-full p-0.5" onPointerMove={onMove} onPointerUp={stopDrag}>
         {activeWindow?.messageCellIds?.map(id => {
           const cell = cells[id];
@@ -118,6 +159,7 @@ export default function Home() {
 
           const isDrag = id === draggingId;
           const isOver = id === overId;
+          const isSelected = selectedIds.has(id);
 
           return (
             <div
@@ -125,11 +167,19 @@ export default function Home() {
               ref={el => { elByIdRef.current[id] = el; }}
               onPointerDown={(e) => startDrag(id, e)}
               className={[
-                "border p-2 mb-2 cursor-move select-none w-3/5",
+                "border p-2 mb-2 cursor-move select-none w-3/5 flex items-center gap-2",
                 isDrag ? "opacity-50" : "",
                 isOver ? "outline outline-2" : "",
+                isSelected ? "bg-[var(--highlight)]" : "",
               ].join(" ")}
             >
+              {/* stopPropagation prevents the checkbox click from also starting a drag */}
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => toggleSelect(id)}
+                onPointerDown={e => e.stopPropagation()}
+              />
               {cell.content}
             </div>
           );

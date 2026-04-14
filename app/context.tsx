@@ -1,24 +1,28 @@
 "use client"; // client component (context hook use)
 
 import { createContext, useContext } from "react"; // React context APIs
-import { MessageCell, ChatWindow } from "@/components/types/core"; // your types
+import { MessageCell, ChatWindow, CellCollection } from "@/components/types/core";
 
 interface AppContextType {
   cells: Record<string, MessageCell>;
   windows: ChatWindow[];
   activeWindowId: string | null;
+  collections: CellCollection[];
   addCell: (cell: MessageCell) => void;
   reorderActiveWindowCells: (fromId: string, toId: string) => void;
-  addNewWindow: () => string; // creates a window, sets it as active, returns its id
+  addNewWindow: () => string;
+  saveCollection: (name: string, orderedCellIds: string[]) => void;
 }
 
 export const AppContext = createContext<AppContextType>({
-  cells: {}, // default empty
-  windows: [], // default empty
-  activeWindowId: null, // default none
+  cells: {},
+  windows: [],
+  activeWindowId: null,
+  collections: [],
   addCell: () => {},
   reorderActiveWindowCells: () => {},
   addNewWindow: () => "",
+  saveCollection: () => {},
 });
 
 export const useApp = () => useContext(AppContext); // convenience hook

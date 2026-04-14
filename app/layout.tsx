@@ -2,7 +2,7 @@
 import "./globals.css";
 import { useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-import { MessageCell, ChatWindow } from "@/components/types/core";
+import { MessageCell, ChatWindow, CellCollection } from "@/components/types/core";
 import { moveId } from "@/lib/reorder"; // pure reorder helper
 import { AppContext } from "./context";
 
@@ -21,9 +21,10 @@ const geistMono = Geist_Mono({
 
 
 export default function RootLayout({children}: {children: React.ReactNode;}){
-  const [windows, setWindows] = useState<ChatWindow[]>([]); // Array of windows
+  const [windows, setWindows] = useState<ChatWindow[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
-  const [cells, setCells] = useState<Record<string, MessageCell>>({}); // Record or Dictionary of cells
+  const [cells, setCells] = useState<Record<string, MessageCell>>({});
+  const [collections, setCollections] = useState<CellCollection[]>([]);
 
   function addCell(cell: MessageCell) {
     setCells(prev => ({ ...prev, [cell.id]: cell }));
@@ -44,6 +45,15 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
       })
     );
   }  
+
+  function saveCollection(name: string, orderedCellIds: string[]) {
+    const collection: CellCollection = {
+      id: crypto.randomUUID(),
+      name,
+      orderedCellIds,
+    };
+    setCollections(prev => [...prev, collection]);
+  }
 
   function addNewWindow(): string {
     const id = crypto.randomUUID();
@@ -100,7 +110,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             {/* page.js */}
-            <AppContext.Provider value={{ cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow }}>
+            <AppContext.Provider value={{ cells, windows, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection }}>
               {children}
             </AppContext.Provider>
 
