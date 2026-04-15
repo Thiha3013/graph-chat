@@ -100,7 +100,10 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
       agentRole: "assistant",
       model: "default",
       systemPrompt: "",
-      messageCellIds: []
+      messageCellIds: [],
+      importedContextRefs: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     }]);
     setActiveWindowId(id);
     return id; // caller may need the id immediately (before state flushes)

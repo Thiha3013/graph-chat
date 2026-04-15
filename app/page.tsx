@@ -99,7 +99,7 @@ export default function Home() {
     // If no window exists yet, create one before submitting.
     // addNewWindow returns the new id immediately since state won't have flushed.
     const windowId = activeWindowId ?? addNewWindow();
-    const currentWindow = activeWindow ?? { id: windowId, title: "New Chat", agentRole: "assistant", model: "default", systemPrompt: "", messageCellIds: [] };
+    const currentWindow = activeWindow ?? { id: windowId, title: "New Chat", agentRole: "assistant", model: "default", systemPrompt: "", messageCellIds: [], importedContextRefs: [], createdAt: Date.now(), updatedAt: Date.now() };
 
     const userCell: MessageCell = {
       id: crypto.randomUUID(),
