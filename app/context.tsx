@@ -13,6 +13,8 @@ interface AppContextType {
   addCell: (cell: MessageCell) => void;
   reorderActiveWindowCells: (fromId: string, toId: string) => void;
   addNewWindow: () => string;
+  renameWindow: (id: string, title: string) => void;
+  deleteWindow: (id: string) => void;
   saveCollection: (name: string, orderedCellIds: string[]) => void;
   injectCollection: (collectionId: string) => void;
 }
@@ -27,6 +29,8 @@ export const AppContext = createContext<AppContextType>({
   addCell: () => {},
   reorderActiveWindowCells: () => {},
   addNewWindow: () => "",
+  renameWindow: () => {},
+  deleteWindow: () => {},
   saveCollection: () => {},
   injectCollection: () => {},
 });

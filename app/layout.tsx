@@ -16,6 +16,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [importedRefsById] = useState<Record<string, ImportedContextRef>>({});
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [collections, setCollections] = useState<CellCollection[]>([]);
+  const [editingWindowId, setEditingWindowId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   function addCell(cell: MessageCell) {
     if (!activeWindowId) return;
@@ -74,6 +76,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     });
   }
 
+  function renameWindow(id: string, title: string) {
+    setWindowsById(prev => {
+      const w = prev[id];
+      if (!w) return prev;
+      return { ...prev, [id]: { ...w, title, updatedAt: Date.now() } };
+    });
+  }
+
+  function deleteWindow(id: string) {
+    setWindowsById(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setWindowOrder(prev => prev.filter(wId => wId !== id));
+    setActiveWindowId(prev => (prev === id ? null : prev));
+  }
+
   function addNewWindow(): string {
     const id = crypto.randomUUID();
     const newWindow: ChatWindow = {
@@ -111,16 +131,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {windowOrder.map(id => {
                 const w = windowsById[id];
                 if (!w) return null;
+                const isActive = id === activeWindowId;
+                const isEditing = editingWindowId === id;
+
                 return (
                   <div
                     key={id}
                     onClick={() => setActiveWindowId(id)}
                     className={[
-                      "rounded-lg w-4/5 p-1 m-0.5 cursor-pointer",
-                      id === activeWindowId ? "bg-[var(--primary)] text-white" : "bg-[var(--border)]"
+                      "rounded-lg w-4/5 p-1 m-0.5 cursor-pointer flex items-center justify-between gap-1",
+                      isActive ? "bg-[var(--primary)] text-white" : "bg-[var(--border)]"
                     ].join(" ")}
                   >
-                    {w.title}
+                    {isEditing ? (
+                      <input
+                        autoFocus
+                        className="flex-1 bg-transparent outline-none text-sm"
+                        value={editingTitle}
+                        onChange={e => setEditingTitle(e.target.value)}
+                        onBlur={() => { renameWindow(id, editingTitle || w.title); setEditingWindowId(null); }}
+                        onKeyDown={e => { if (e.key === "Enter") { renameWindow(id, editingTitle || w.title); setEditingWindowId(null); } }}
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span
+                        className="flex-1 truncate text-sm"
+                        onDoubleClick={e => { e.stopPropagation(); setEditingWindowId(id); setEditingTitle(w.title); }}
+                      >
+                        {w.title}
+                      </span>
+                    )}
+                    <button
+                      className="text-xs opacity-50 hover:opacity-100 shrink-0"
+                      onClick={e => { e.stopPropagation(); deleteWindow(id); }}
+                    >
+                      ✕
+                    </button>
                   </div>
                 );
               })}
@@ -133,7 +179,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>Title</div>
             </div>
 
-            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection }}>
+            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, renameWindow, deleteWindow, saveCollection, injectCollection }}>
               {children}
             </AppContext.Provider>
           </div>
