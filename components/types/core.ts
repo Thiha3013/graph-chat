@@ -29,6 +29,7 @@ export interface MessageCell {
   role: "user" | "assistant"; /** Role of the message sender */
   content: string;  /** The actual message content */
   createdAt: number; /** Unix timestamp when the cell was created */
+  importedFrom?: string; /** Collection name this cell was injected from, if any */
 }
 
 /**

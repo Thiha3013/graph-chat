@@ -12,6 +12,7 @@ interface AppContextType {
   reorderActiveWindowCells: (fromId: string, toId: string) => void;
   addNewWindow: () => string;
   saveCollection: (name: string, orderedCellIds: string[]) => void;
+  injectCollection: (collectionId: string) => void;
 }
 
 export const AppContext = createContext<AppContextType>({
@@ -23,6 +24,7 @@ export const AppContext = createContext<AppContextType>({
   reorderActiveWindowCells: () => {},
   addNewWindow: () => "",
   saveCollection: () => {},
+  injectCollection: () => {},
 });
 
 export const useApp = () => useContext(AppContext); // convenience hook

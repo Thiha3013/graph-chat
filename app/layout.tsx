@@ -55,6 +55,43 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
     setCollections(prev => [...prev, collection]);
   }
 
+  function injectCollection(collectionId: string) {
+    const collection = collections.find(c => c.id === collectionId);
+    if (!collection || !activeWindowId) return;
+
+    const newCells: MessageCell[] = [];
+    const newIds: string[] = [];
+
+    for (const originalId of collection.orderedCellIds) {
+      const original = cells[originalId];
+      if (!original) continue; // skip if original cell no longer exists
+
+      const duplicate: MessageCell = {
+        ...original,               // copy role, content, createdAt
+        id: crypto.randomUUID(),   // new unique id so it's independent
+        windowId: activeWindowId,  // belongs to current window
+        importedFrom: collection.name,
+      };
+
+      newCells.push(duplicate);
+      newIds.push(duplicate.id);
+    }
+
+    // Add all new cells to the cells record at once
+    setCells(prev => {
+      const next = { ...prev };
+      for (const cell of newCells) next[cell.id] = cell;
+      return next;
+    });
+
+    // Append all new ids to the active window's order
+    setWindows(prev => prev.map(w =>
+      w.id === activeWindowId
+        ? { ...w, messageCellIds: [...w.messageCellIds, ...newIds] }
+        : w
+    ));
+  }
+
   function addNewWindow(): string {
     const id = crypto.randomUUID();
     setWindows(prev => [...prev, {
@@ -114,7 +151,7 @@ export default function RootLayout({children}: {children: React.ReactNode;}){
             </div>
 
             {/* page.js */}
-            <AppContext.Provider value={{ cells, windows, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection }}>
+            <AppContext.Provider value={{ cells, windows, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection }}>
               {children}
             </AppContext.Provider>
 

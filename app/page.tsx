@@ -15,7 +15,7 @@ export default function Home() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState("");
 
-  const { cells, windows, activeWindowId, addCell, reorderActiveWindowCells, addNewWindow, saveCollection } = useApp();
+  const { cells, windows, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection } = useApp();
   const activeWindow = windows.find(w => w.id === activeWindowId);
 
   // Refs track drag state without triggering re-renders on every pointer move.
@@ -43,7 +43,7 @@ export default function Home() {
     const orderedCellIds = (activeWindow?.messageCellIds ?? []).filter(id => selectedIds.has(id));
 
     saveCollection(collectionName.trim(), orderedCellIds);
-    setSelectedIds(new Set()); // clear selection
+    setSelectedIds(new Set());
     setCollectionName("");
   }
 
@@ -137,6 +137,21 @@ export default function Home() {
 
   return (
     <div className="">
+      {/* Collection list — always visible at top when collections exist */}
+      {collections.length > 0 && (
+        <div className="flex flex-wrap gap-2 justify-center p-2 border-b">
+          {collections.map(c => (
+            <button
+              key={c.id}
+              onClick={() => injectCollection(c.id)}
+              className="text-xs border px-2 py-1 rounded hover:bg-[var(--highlight)]"
+            >
+              + {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Save bar — only visible when at least one cell is selected */}
       {selectedIds.size > 0 && (
         <div className="flex justify-center gap-2 p-2">
@@ -167,20 +182,26 @@ export default function Home() {
               ref={el => { elByIdRef.current[id] = el; }}
               onPointerDown={(e) => startDrag(id, e)}
               className={[
-                "border p-2 mb-2 cursor-move select-none w-3/5 flex items-center gap-2",
+                "border p-2 mb-2 cursor-move select-none w-3/5 flex flex-col gap-1",
                 isDrag ? "opacity-50" : "",
                 isOver ? "outline outline-2" : "",
                 isSelected ? "bg-[var(--highlight)]" : "",
               ].join(" ")}
             >
-              {/* stopPropagation prevents the checkbox click from also starting a drag */}
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => toggleSelect(id)}
-                onPointerDown={e => e.stopPropagation()}
-              />
-              {cell.content}
+              {/* Label injected cells with the collection they came from */}
+              {cell.importedFrom && (
+                <span className="text-xs opacity-50">↩ {cell.importedFrom}</span>
+              )}
+              <div className="flex items-center gap-2">
+                {/* stopPropagation prevents the checkbox click from also starting a drag */}
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => toggleSelect(id)}
+                  onPointerDown={e => e.stopPropagation()}
+                />
+                {cell.content}
+              </div>
             </div>
           );
         })}
