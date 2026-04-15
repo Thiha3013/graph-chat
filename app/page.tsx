@@ -15,8 +15,8 @@ export default function Home() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState("");
 
-  const { cells, windows, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection } = useApp();
-  const activeWindow = windows.find(w => w.id === activeWindowId);
+  const { cellsById, windowsById, windowOrder, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection } = useApp();
+  const activeWindow = activeWindowId ? windowsById[activeWindowId] : undefined;
 
   // Refs track drag state without triggering re-renders on every pointer move.
   const dragIdRef = useRef<string | null>(null);
@@ -115,7 +115,7 @@ export default function Home() {
 
     // React state hasn't flushed yet, so we build the updated context manually
     // rather than reading from stale state.
-    const updatedCells = { ...cells, [userCell.id]: userCell };
+    const updatedCells = { ...cellsById, [userCell.id]: userCell };
     const updatedWindow = { ...currentWindow, messageCellIds: [...currentWindow.messageCellIds, userCell.id] };
     const messages = assembleContext(updatedWindow, updatedCells);
 
@@ -134,6 +134,9 @@ export default function Home() {
 
   const draggingId = dragIdRef.current;
   const overId = overIdRef.current;
+
+  // suppress unused warning — windowOrder is available for future UI use
+  void windowOrder;
 
   return (
     <div className="">
@@ -169,7 +172,7 @@ export default function Home() {
 
       <div className="flex flex-col items-center w-full p-0.5" onPointerMove={onMove} onPointerUp={stopDrag}>
         {activeWindow?.messageCellIds?.map(id => {
-          const cell = cells[id];
+          const cell = cellsById[id];
           if (!cell) return null;
 
           const isDrag = id === draggingId;
@@ -188,12 +191,10 @@ export default function Home() {
                 isSelected ? "bg-[var(--highlight)]" : "",
               ].join(" ")}
             >
-              {/* Label injected cells with the collection they came from */}
               {cell.importedFrom && (
                 <span className="text-xs opacity-50">↩ {cell.importedFrom}</span>
               )}
               <div className="flex items-center gap-2">
-                {/* stopPropagation prevents the checkbox click from also starting a drag */}
                 <input
                   type="checkbox"
                   checked={isSelected}
