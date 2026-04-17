@@ -107,6 +107,7 @@ export default function Home() {
       role: "user",
       content: text,
       createdAt: Date.now(),
+      isPinned: false,
     };
 
     addCell(userCell);
@@ -127,6 +128,7 @@ export default function Home() {
       role: "assistant",
       content,
       createdAt: Date.now(),
+      isPinned: false,
     });
 
     setLoading(false);

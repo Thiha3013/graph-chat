@@ -31,6 +31,7 @@ export interface MessageCell {
   content: string;
   createdAt: number;
   importedFrom?: string; /** Collection name this cell was injected from, if any */
+  isPinned: boolean;
 }
 
 /**

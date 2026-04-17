@@ -58,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         id: crypto.randomUUID(),
         windowId: activeWindowId,
         importedFrom: collection.name,
+        isPinned: false,
       };
       newCells.push(duplicate);
       newIds.push(duplicate.id);
