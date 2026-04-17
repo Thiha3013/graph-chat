@@ -15,8 +15,12 @@ export default function Home() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState("");
 
-  const { cellsById, windowsById, windowOrder, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection } = useApp();
+  const { cellsById, windowsById, windowOrder, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection, togglePin } = useApp();
   const activeWindow = activeWindowId ? windowsById[activeWindowId] : undefined;
+
+  const pinnedCells = (activeWindow?.messageCellIds ?? [])
+    .map(id => cellsById[id])
+    .filter((cell): cell is NonNullable<typeof cell> => !!cell?.isPinned);
 
   // Refs track drag state without triggering re-renders on every pointer move.
   const dragIdRef = useRef<string | null>(null);
@@ -172,6 +176,17 @@ export default function Home() {
         </div>
       )}
 
+      {pinnedCells.length > 0 && (
+        <div className="flex flex-col items-center w-full p-0.5 border-b mb-2">
+          <span className="text-xs opacity-50 self-start ml-[20%] mb-1">📌 Pinned Context</span>
+          {pinnedCells.map(cell => (
+            <div key={cell.id} className="border-2 border-[var(--primary)] p-2 mb-1 w-3/5 text-sm opacity-80">
+              {cell.content}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col items-center w-full p-0.5" onPointerMove={onMove} onPointerUp={stopDrag}>
         {activeWindow?.messageCellIds?.map(id => {
           const cell = cellsById[id];
@@ -191,6 +206,7 @@ export default function Home() {
                 isDrag ? "opacity-50" : "",
                 isOver ? "outline outline-2" : "",
                 isSelected ? "bg-[var(--highlight)]" : "",
+                cell.isPinned ? "border-[var(--primary)] border-2" : "",
               ].join(" ")}
             >
               {cell.importedFrom && (
@@ -203,6 +219,13 @@ export default function Home() {
                   onChange={() => toggleSelect(id)}
                   onPointerDown={e => e.stopPropagation()}
                 />
+                <button
+                  onPointerDown={e => e.stopPropagation()}
+                  onClick={() => togglePin(id)}
+                  className="text-xs opacity-50 hover:opacity-100"
+                >
+                  {cell.isPinned ? "unpin" : "pin"}
+                </button>
                 {cell.content}
               </div>
             </div>

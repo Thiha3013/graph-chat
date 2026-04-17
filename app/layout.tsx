@@ -77,6 +77,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     });
   }
 
+  function togglePin(id: string) {
+  setCellsById(prev => {
+    const cell = prev[id];
+    if (!cell) return prev;
+    return { ...prev, [id]: { ...cell, isPinned: !cell.isPinned } };
+  });
+  }
+
+
   function renameWindow(id: string, title: string) {
     setWindowsById(prev => {
       const w = prev[id];
@@ -180,7 +189,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>Title</div>
             </div>
 
-            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, renameWindow, deleteWindow, saveCollection, injectCollection }}>
+            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, renameWindow, deleteWindow, saveCollection, injectCollection, togglePin }}>
               {children}
             </AppContext.Provider>
           </div>

@@ -17,6 +17,7 @@ interface AppContextType {
   deleteWindow: (id: string) => void;
   saveCollection: (name: string, orderedCellIds: string[]) => void;
   injectCollection: (collectionId: string) => void;
+  togglePin: (id: string) => void;
 }
 
 export const AppContext = createContext<AppContextType>({
@@ -33,6 +34,7 @@ export const AppContext = createContext<AppContextType>({
   deleteWindow: () => {},
   saveCollection: () => {},
   injectCollection: () => {},
+  togglePin: () => {},
 });
 
 export const useApp = () => useContext(AppContext);
