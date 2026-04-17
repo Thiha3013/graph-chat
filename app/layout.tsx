@@ -20,12 +20,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [editingTitle, setEditingTitle] = useState("");
 
   function addCell(cell: MessageCell) {
-    if (!activeWindowId) return;
     setCellsById(prev => ({ ...prev, [cell.id]: cell }));
     setWindowsById(prev => {
-      const w = prev[activeWindowId];
+      const w = prev[cell.windowId]; // use cell.windowId directly — avoids stale activeWindowId closure
       if (!w) return prev;
-      return { ...prev, [activeWindowId]: { ...w, messageCellIds: [...w.messageCellIds, cell.id], updatedAt: Date.now() } };
+      return { ...prev, [cell.windowId]: { ...w, messageCellIds: [...w.messageCellIds, cell.id], updatedAt: Date.now() } };
     });
   }
 
