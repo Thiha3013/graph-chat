@@ -20,11 +20,23 @@ export function assembleContext(
     messages.push({ role: "system", content: window.systemPrompt }); // always goes first
   }
 
-  for (const id of window.messageCellIds) { // for...of loops over each item in an array
+  const pinned: MessageCell[] = [];
+  const active: MessageCell[] = [];
+
+  for (const id of window.messageCellIds) {
     const cell = cellsById[id];
-    if (!cell) continue; // skip missing cells
+    if (!cell) continue;
+    cell.isPinned ? pinned.push(cell) : active.push(cell);
+  }
+
+  for (const cell of pinned) {
     messages.push({ role: cell.role, content: cell.content });
   }
+
+  for (const cell of active) {
+    messages.push({ role: cell.role, content: cell.content });
+  }
+
 
   return messages;
 }
