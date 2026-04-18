@@ -32,6 +32,9 @@ export interface MessageCell {
   createdAt: number;
   importedFrom?: string; /** Collection name this cell was injected from, if any */
   isPinned: boolean;
+  cellMode: "full" | "minimized" | "excluded";
+  minimizedContent?: string;
+  
 }
 
 /**

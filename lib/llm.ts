@@ -1,5 +1,11 @@
+// lib/llm.ts
+// Thin wrapper around the OpenAI SDK pointed at LM Studio's local server.
+// Takes a ContextMessage array (built by assembler.ts) and returns the
+// model's reply as a plain string.
+// To swap models or point at a different server, change MODEL or baseURL.
+// dangerouslyAllowBrowser is required because calls are made client-side.
 import OpenAI from "openai";
-import { ContextMessage } from "./context";
+import { ContextMessage } from "./assembler";
 
 // OpenAI-compatible client pointed at LM Studio's local server.
 // dangerouslyAllowBrowser: true is required because this runs in the browser.

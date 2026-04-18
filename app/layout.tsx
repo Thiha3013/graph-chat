@@ -1,3 +1,9 @@
+// app/layout.tsx
+// Root layout and the single source of truth for all workspace state.
+// Owns windowsById, windowOrder, cellsById, collections, and activeWindowId.
+// All state-mutating functions (addCell, togglePin, deleteWindow, etc.) are
+// defined here and passed down to child components via AppContext.Provider.
+// This is the only file allowed to call setState on workspace-level data.
 "use client";
 import "./globals.css";
 import { useState } from "react";
@@ -58,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         windowId: activeWindowId,
         importedFrom: collection.name,
         isPinned: false,
+        cellMode: "full",
       };
       newCells.push(duplicate);
       newIds.push(duplicate.id);
@@ -81,6 +88,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     const cell = prev[id];
     if (!cell) return prev;
     return { ...prev, [id]: { ...cell, isPinned: !cell.isPinned } };
+  });
+  }
+
+  function setCellMode(id: string, mode: "full" | "minimized" | "excluded") {
+  setCellsById(prev => {
+    const cell = prev[id];
+    if (!cell) return prev;
+    const minimizedContent = mode === "minimized"
+      ? cell.content.slice(0, 100) // first 100 chars as the cutoff
+      : cell.minimizedContent;
+    return { ...prev, [id]: { ...cell, cellMode: mode, minimizedContent } };
   });
   }
 
@@ -188,7 +206,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div>Title</div>
             </div>
 
-            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, renameWindow, deleteWindow, saveCollection, injectCollection, togglePin }}>
+            <AppContext.Provider value={{ windowsById, windowOrder, cellsById, importedRefsById, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, renameWindow, deleteWindow, saveCollection, injectCollection, togglePin, setCellMode }}>
               {children}
             </AppContext.Provider>
           </div>

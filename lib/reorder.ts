@@ -1,3 +1,8 @@
+// lib/reorder.ts
+// Pure utility functions for reordering arrays by index or by item ID.
+// Used by reorderActiveWindowCells in layout.tsx to move cells around
+// without mutating the original array.
+// No state, no side effects — input in, new array out.
 export function moveIndex<T>(arr: T[], from: number, to: number): T[] { // move item by index
     if (from === to) return arr; // no-op
     if (from < 0 || to < 0) return arr; // guard

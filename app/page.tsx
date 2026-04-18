@@ -1,9 +1,15 @@
+// app/page.tsx
+// Main chat view rendered inside the active window area.
+// Reads workspace state from AppContext via useApp() and renders:
+// the pinned context section, the conversation cell list, the save-collection
+// bar, and the text input. Also handles drag-to-reorder, cell selection,
+// pin/unpin, and LLM submission (assembles context, calls LLM, appends reply).
 "use client";
 
 import { useState, useRef } from "react";
 import { useApp } from "./context";
 import { MessageCell } from "@/components/types/core";
-import { assembleContext } from "@/lib/context";
+import { assembleContext } from "@/lib/assembler";
 import { callLLM } from "@/lib/llm";
 
 export default function Home() {
@@ -15,7 +21,7 @@ export default function Home() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState("");
 
-  const { cellsById, windowsById, windowOrder, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection, togglePin } = useApp();
+  const { cellsById, windowsById, windowOrder, activeWindowId, collections, addCell, reorderActiveWindowCells, addNewWindow, saveCollection, injectCollection, togglePin, setCellMode } = useApp();
   const activeWindow = activeWindowId ? windowsById[activeWindowId] : undefined;
 
   const pinnedCells = (activeWindow?.messageCellIds ?? [])
@@ -112,6 +118,7 @@ export default function Home() {
       content: text,
       createdAt: Date.now(),
       isPinned: false,
+      cellMode: "full"
     };
 
     addCell(userCell);
@@ -133,6 +140,7 @@ export default function Home() {
       content,
       createdAt: Date.now(),
       isPinned: false,
+      cellMode: "full"
     });
 
     setLoading(false);
@@ -195,6 +203,8 @@ export default function Home() {
           const isDrag = id === draggingId;
           const isOver = id === overId;
           const isSelected = selectedIds.has(id);
+          const isExcluded = cell.cellMode === "excluded";
+          const isMinimized = cell.cellMode === "minimized";
 
           return (
             <div
@@ -207,6 +217,7 @@ export default function Home() {
                 isOver ? "outline outline-2" : "",
                 isSelected ? "bg-[var(--highlight)]" : "",
                 cell.isPinned ? "border-[var(--primary)] border-2" : "",
+                isExcluded ? "opacity-30 line-through" : "",
               ].join(" ")}
             >
               {cell.importedFrom && (
@@ -226,7 +237,12 @@ export default function Home() {
                 >
                   {cell.isPinned ? "unpin" : "pin"}
                 </button>
-                {cell.content}
+                <button onPointerDown={e => e.stopPropagation()} onClick={() => setCellMode(id, "minimized")}>minimize</button>
+                <button onPointerDown={e => e.stopPropagation()} onClick={() => setCellMode(id, "excluded")}>exclude</button>
+                <button onPointerDown={e => e.stopPropagation()} onClick={() => setCellMode(id, "full")}>restore</button>
+              </div>
+              <div className={isMinimized ? "text-xs opacity-60 italic" : ""}>
+                {isMinimized ? cell.minimizedContent : cell.content}
               </div>
             </div>
           );
